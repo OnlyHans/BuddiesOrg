@@ -1,0 +1,220 @@
+import 'package:app/utils/api/api.dart';
+import 'package:app/auth/api/models/register.dto.dart';
+import 'package:app/utils/api/exceptions/bad_request.exception.dart';
+import 'package:app/utils/api/exceptions/conflict.exception.dart';
+import 'package:app/auth/screens/email_confirmation.screen.dart';
+import 'package:app/auth/screens/login.screen.dart';
+import 'package:app/utils/assets.util.dart';
+import 'package:app/auth/widgets/input.widget.dart';
+import 'package:app/common/button.widget.dart';
+import 'package:app/utils/snackbar.util.dart';
+import 'package:flutter/material.dart';
+
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
+
+  static String routeName = '/register';
+
+  @override
+  State<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
+  final TextEditingController _firstName = TextEditingController();
+  final TextEditingController _lastName = TextEditingController();
+
+  final TextEditingController _username = TextEditingController();
+  final TextEditingController _email = TextEditingController();
+
+  final TextEditingController _password = TextEditingController();
+  final TextEditingController _confirmPassword = TextEditingController();
+
+  bool passwordObscured = true;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  void _togglePasswordObscure() {
+    setState(() {
+      passwordObscured = !passwordObscured;
+    });
+  }
+
+  void _handleRegister(RegisterDto registerDto) async {
+    if (_password.text != _confirmPassword.text) {
+      showSnackbar('Passwords do not match');
+      return;
+    }
+    try {
+      await API.auth.register.register(registerDto);
+      _handleRedirectEmailConfirm();
+    } on BadRequestException {
+      showSnackbar('Please enter all fields');
+    } on ConflictException catch (e) {
+      showSnackbar(e.message);
+    }
+  }
+
+  void _handleRedirectLogin() {
+    Navigator.of(context).pushReplacementNamed(LoginScreen.routeName);
+  }
+
+  void _handleRedirectEmailConfirm() {
+    Navigator.of(context)
+        .pushReplacementNamed(EmailConfirmationScreen.routeName);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
+
+    return Scaffold(
+      backgroundColor: AppAssets.colors.dark,
+      body: SingleChildScrollView(
+        child: SizedBox(
+          width: width,
+          height: height,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Stack(
+              children: [
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 28.0),
+                    child: Image.asset(
+                      AppAssets.images.logo,
+                      width: 40.0,
+                    ),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.center,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'Welcome to BuddiesORG',
+                        style: TextStyle(
+                          fontSize: 32.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      BuddiesorgAuthInput(
+                        controller: _firstName,
+                        label: 'First Name',
+                      ),
+                      const SizedBox(height: 10.0),
+                      BuddiesorgAuthInput(
+                        controller: _lastName,
+                        label: 'Last Name',
+                      ),
+                      const SizedBox(height: 20.0),
+                      BuddiesorgAuthInput(
+                        controller: _username,
+                        label: 'Username',
+                      ),
+                      const SizedBox(height: 10.0),
+                      BuddiesorgAuthInput(
+                        controller: _email,
+                        label: 'Email',
+                      ),
+                      const SizedBox(height: 20.0),
+                      BuddiesorgAuthInput(
+                        controller: _password,
+                        label: 'Password',
+                        obscured: passwordObscured,
+                        suffixIcon: IconButton(
+                          onPressed: _togglePasswordObscure,
+                          icon: passwordObscured
+                              ? Icon(
+                                  Icons.visibility,
+                                  color: AppAssets.colors.lightHighlight,
+                                )
+                              : Icon(
+                                  Icons.visibility_off,
+                                  color: AppAssets.colors.lightHighlight,
+                                ),
+                        ),
+                      ),
+                      const SizedBox(height: 10.0),
+                      BuddiesorgAuthInput(
+                        controller: _confirmPassword,
+                        label: 'Confirm Password',
+                        obscured: passwordObscured,
+                        suffixIcon: IconButton(
+                          onPressed: _togglePasswordObscure,
+                          icon: passwordObscured
+                              ? Icon(
+                                  Icons.visibility,
+                                  color: AppAssets.colors.lightHighlight,
+                                )
+                              : Icon(
+                                  Icons.visibility_off,
+                                  color: AppAssets.colors.lightHighlight,
+                                ),
+                        ),
+                      ),
+                      const SizedBox(height: 30.0),
+                      Text(
+                        'By signing up, you agree to our Terms of Service and Privacy Policy',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: AppAssets.colors.lightHighlight,
+                        ),
+                      ),
+                      const SizedBox(height: 30.0),
+                      BuddiesorgButton(
+                        label: 'Sign Up',
+                        width: width * 0.8,
+                        height: 55,
+                        onPressed: () => _handleRegister(
+                          RegisterDto(
+                            email: _email.text,
+                            username: _username.text,
+                            password: _password.text,
+                            firstName: _firstName.text,
+                            lastName: _lastName.text,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Already have an account?',
+                        style: TextStyle(
+                          color: AppAssets.colors.lightHighlight,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => _handleRedirectLogin(),
+                        child: Text(
+                          'Login',
+                          style: TextStyle(
+                            color: AppAssets.colors.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
