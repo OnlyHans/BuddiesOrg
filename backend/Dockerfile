@@ -21,7 +21,7 @@ ARG JWT_SECRET
 ARG EMAIL_CONFIRM_SECRET
 ARG FORGOT_PASSWORD_SECRET
 
-ARG MAIL_HOST=gmail.com
+ARG MAIL_HOST=mail.aerio.cloud
 ARG MAIL_USER=buddiesorg@aljazklevisar.com
 ARG MAIL_PASSWORD
 ARG MAIL_FROM=buddiesorg@aljazklevisar.com
